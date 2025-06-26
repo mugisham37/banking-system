@@ -1,12 +1,7 @@
 "use server";
 
 import {
-  ACHClass,
   CountryCode,
-  TransferAuthorizationCreateRequest,
-  TransferCreateRequest,
-  TransferNetwork,
-  TransferType,
 } from "plaid";
 
 import { plaidClient } from "../plaid";
@@ -151,7 +146,7 @@ export const getTransactions = async ({
   accessToken,
 }: getTransactionsProps) => {
   let hasMore = true;
-  let transactions: any = [];
+  let transactions: Partial<Transaction>[] = [];
 
   try {
     // Iterate through each page of new transaction updates for item
@@ -164,6 +159,7 @@ export const getTransactions = async ({
 
       transactions = response.data.added.map((transaction) => ({
         id: transaction.transaction_id,
+        $id: transaction.transaction_id,
         name: transaction.name,
         paymentChannel: transaction.payment_channel,
         type: transaction.payment_channel,
@@ -172,7 +168,11 @@ export const getTransactions = async ({
         pending: transaction.pending,
         category: transaction.category ? transaction.category[0] : "",
         date: transaction.date,
-        image: transaction.logo_url,
+        image: transaction.logo_url || "",
+        $createdAt: transaction.date,
+        channel: transaction.payment_channel,
+        senderBankId: "",
+        receiverBankId: "",
       }));
 
       hasMore = data.has_more;

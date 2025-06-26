@@ -12,36 +12,16 @@ import { Form } from "@/components/ui/form";
 import CustomInput from './CustomInput';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-
-// Temporary auth form schema until lib/utils is provided
-const authFormSchema = (type: string) => {
-  return z.object({
-    // Common fields
-    email: z.string().email("Please enter a valid email"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    
-    // Sign-up specific fields
-    ...(type === 'sign-up' && {
-      firstName: z.string().min(1, "First name is required"),
-      lastName: z.string().min(1, "Last name is required"),
-      address1: z.string().min(1, "Address is required"),
-      city: z.string().min(1, "City is required"),
-      state: z.string().min(2, "State is required"),
-      postalCode: z.string().min(5, "Postal code is required"),
-      dateOfBirth: z.string().min(1, "Date of birth is required"),
-      ssn: z.string().min(4, "SSN is required"),
-    }),
-  });
-};
+import { authFormSchema } from '@/lib/utils';
 
 // Temporary PlaidLink component until the actual one is provided
-const PlaidLink = ({ user, variant }: { user: any; variant: string }) => {
+const PlaidLink = ({ user, variant }: { user: User; variant: string }) => {
   return (
     <div className="flex flex-col items-center gap-4 p-6 border rounded-lg">
       <div className="text-center">
         <h3 className="text-lg font-semibold">Connect Your Bank Account</h3>
         <p className="text-sm text-gray-600 mt-2">
-          Link your bank account to get started with Horizon
+          Welcome {user.firstName}! Link your bank account to get started with Horizon
         </p>
       </div>
       <Button className="w-full" variant={variant === "primary" ? "default" : "outline"}>
@@ -52,11 +32,26 @@ const PlaidLink = ({ user, variant }: { user: any; variant: string }) => {
 };
 
 // Temporary user action functions until lib/actions/user.actions is provided
-const signUp = async (userData: any) => {
+const signUp = async (userData: SignUpParams) => {
   console.log('Sign up attempt:', userData);
   // Simulate API call
   await new Promise(resolve => setTimeout(resolve, 1000));
-  return { id: '1', email: userData.email, firstName: userData.firstName };
+  return { 
+    $id: '1', 
+    email: userData.email, 
+    firstName: userData.firstName,
+    lastName: userData.lastName,
+    userId: '1',
+    dwollaCustomerUrl: '',
+    dwollaCustomerId: '',
+    name: `${userData.firstName} ${userData.lastName}`,
+    address1: userData.address1,
+    city: userData.city,
+    state: userData.state,
+    postalCode: userData.postalCode,
+    dateOfBirth: userData.dateOfBirth,
+    ssn: userData.ssn
+  };
 };
 
 const signIn = async (credentials: { email: string; password: string }) => {
@@ -66,18 +61,13 @@ const signIn = async (credentials: { email: string; password: string }) => {
   return { success: true };
 };
 
-const getLoggedInUser = async () => {
-  // Simulate getting logged in user
-  return null;
-};
-
 interface AuthFormProps {
   type: 'sign-in' | 'sign-up';
 }
 
 const AuthForm = ({ type }: AuthFormProps) => {
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const formSchema = authFormSchema(type);

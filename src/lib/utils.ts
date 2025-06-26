@@ -1,4 +1,3 @@
-/* eslint-disable no-prototype-builtins */
 import { type ClassValue, clsx } from "clsx";
 import qs from "query-string";
 import { twMerge } from "tailwind-merge";
@@ -150,7 +149,7 @@ export function countTransactionCategories(
   let totalCount = 0;
 
   // Iterate over each transaction
-  transactions &&
+  if (transactions) {
     transactions.forEach((transaction) => {
       // Extract the category from the transaction
       const category = transaction.category;
@@ -166,6 +165,7 @@ export function countTransactionCategories(
       // Increment total count
       totalCount++;
     });
+  }
 
   // Convert the categoryCounts object to an array of objects
   const aggregatedCategories: CategoryCount[] = Object.keys(categoryCounts).map(

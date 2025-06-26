@@ -5,30 +5,10 @@ import BankCard from './BankCard';
 import { countTransactionCategories } from '@/lib/utils';
 import Category from './Category';
 
-interface User {
-  $id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-}
-
-interface Transaction {
-  id: string;
-  category: string;
-}
-
-interface Bank {
-  $id: string;
-  name: string;
-  currentBalance: number;
-  mask?: string;
-  shareableId?: string;
-}
-
 interface RightSidebarProps {
   user: User;
   transactions: Transaction[];
-  banks: Bank[];
+  banks: Account[];
 }
 
 const RightSidebar = ({ user, transactions, banks }: RightSidebarProps) => {
@@ -74,14 +54,8 @@ const RightSidebar = ({ user, transactions, banks }: RightSidebarProps) => {
           <div className="relative flex flex-1 flex-col items-center justify-center gap-5">
             <div className='relative z-10'>
               <BankCard 
-                key={banks[0].$id}
-                account={{
-                  appwriteItemId: banks[0].$id,
-                  name: banks[0].name,
-                  currentBalance: banks[0].currentBalance,
-                  mask: banks[0].mask,
-                  sharaebleId: banks[0].shareableId
-                }}
+                key={banks[0].id}
+                account={banks[0]}
                 userName={`${user.firstName} ${user.lastName}`}
                 showBalance={false}
               />
@@ -89,14 +63,8 @@ const RightSidebar = ({ user, transactions, banks }: RightSidebarProps) => {
             {banks[1] && (
               <div className="absolute right-0 top-8 z-0 w-[90%]">
                 <BankCard 
-                  key={banks[1].$id}
-                  account={{
-                    appwriteItemId: banks[1].$id,
-                    name: banks[1].name,
-                    currentBalance: banks[1].currentBalance,
-                    mask: banks[1].mask,
-                    sharaebleId: banks[1].shareableId
-                  }}
+                  key={banks[1].id}
+                  account={banks[1]}
                   userName={`${user.firstName} ${user.lastName}`}
                   showBalance={false}
                 />

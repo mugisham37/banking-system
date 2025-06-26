@@ -13,9 +13,10 @@ interface CustomInputProps {
   name: FieldPath<FormSchema>;
   label: string;
   placeholder: string;
+  type?: string;
 }
 
-const CustomInput = ({ control, name, label, placeholder }: CustomInputProps) => {
+const CustomInput = ({ control, name, label, placeholder, type }: CustomInputProps) => {
   return (
     <FormField
       control={control}
@@ -30,7 +31,7 @@ const CustomInput = ({ control, name, label, placeholder }: CustomInputProps) =>
               <Input 
                 placeholder={placeholder}
                 className="input-class"
-                type={name === 'password' ? 'password' : 'text'}
+                type={type || (name === 'password' ? 'password' : 'text')}
                 value={field.value || ''}
                 onChange={field.onChange}
                 onBlur={field.onBlur}

@@ -8,7 +8,7 @@ import { CountryCode, ProcessorTokenCreateRequest, ProcessorTokenCreateRequestPr
 
 import { plaidClient } from "../plaid";
 import { revalidatePath } from "next/cache";
-import { addFundingSource, createDwollaCustomer } from "./dwolla.actions";
+import { addFundingSource, createDwollaCustomer } from "../actions/dwolla.actions";
 
 const {
   APPWRITE_DATABASE_ID: DATABASE_ID,
@@ -129,7 +129,7 @@ export const logoutAccount = async () => {
     cookieStore.delete('appwrite-session');
 
     await account.deleteSession('current');
-  } catch (error) {
+  } catch {
     return null;
   }
 }

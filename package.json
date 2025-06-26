@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:quiet": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clean": "rmdir /s /q .next 2>nul & rmdir /s /q node_modules\\.cache 2>nul"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
