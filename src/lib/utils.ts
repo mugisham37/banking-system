@@ -1,113 +1,171 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
-import { z } from "zod"
+/* eslint-disable no-prototype-builtins */
+import { type ClassValue, clsx } from "clsx";
+import qs from "query-string";
+import { twMerge } from "tailwind-merge";
+import { z } from "zod";
+
+// Import types from the types file
+type AccountTypes = "depository" | "credit" | "loan" | "investment" | "other";
+type Transaction = {
+  id: string;
+  category: string;
+  [key: string]: unknown;
+};
+type CategoryCount = {
+  name: string;
+  count: number;
+  totalCount: number;
+};
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
-export const authFormSchema = (type: string) => {
-  return z.object({
-    // Common fields
-    email: z.string().email("Please enter a valid email"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    
-    // Sign-up specific fields
-    ...(type === 'sign-up' && {
-      firstName: z.string().min(1, "First name is required"),
-      lastName: z.string().min(1, "Last name is required"),
-      address1: z.string().min(1, "Address is required"),
-      city: z.string().min(1, "City is required"),
-      state: z.string().min(2, "State is required"),
-      postalCode: z.string().min(5, "Postal code is required"),
-      dateOfBirth: z.string().min(1, "Date of birth is required"),
-      ssn: z.string().min(4, "SSN is required"),
-    }),
-  });
-};
-
-export const formatAmount = (amount: number): string => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount);
-};
-
-export const formUrlQuery = ({ params, key, value }: { params: string; key: string; value: string }) => {
-  const searchParams = new URLSearchParams(params);
-  searchParams.set(key, value);
-  return `?${searchParams.toString()}`;
-};
-
-export const formatDateTime = (dateTime: Date) => {
-  const dateTimeString = dateTime.toLocaleString("en-US", {
+// FORMAT DATE TIME
+export const formatDateTime = (dateString: Date) => {
+  const dateTimeOptions: Intl.DateTimeFormatOptions = {
+    weekday: "short", // abbreviated weekday name (e.g., 'Mon')
     month: "short", // abbreviated month name (e.g., 'Oct')
     day: "numeric", // numeric day of the month (e.g., '25')
-    year: "numeric", // numeric year (e.g., '2023')
     hour: "numeric", // numeric hour (e.g., '8')
     minute: "numeric", // numeric minute (e.g., '30')
     hour12: true, // use 12-hour clock (true) or 24-hour clock (false)
-  });
+  };
 
-  const dateOnly = dateTime.toLocaleString("en-US", {
-    month: "short", // abbreviated month name (e.g., 'Oct')
-    day: "numeric", // numeric day of the month (e.g., '25')
+  const dateDayOptions: Intl.DateTimeFormatOptions = {
+    weekday: "short", // abbreviated weekday name (e.g., 'Mon')
     year: "numeric", // numeric year (e.g., '2023')
-  });
+    month: "2-digit", // abbreviated month name (e.g., 'Oct')
+    day: "2-digit", // numeric day of the month (e.g., '25')
+  };
 
-  const timeOnly = dateTime.toLocaleString("en-US", {
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    month: "short", // abbreviated month name (e.g., 'Oct')
+    year: "numeric", // numeric year (e.g., '2023')
+    day: "numeric", // numeric day of the month (e.g., '25')
+  };
+
+  const timeOptions: Intl.DateTimeFormatOptions = {
     hour: "numeric", // numeric hour (e.g., '8')
     minute: "numeric", // numeric minute (e.g., '30')
     hour12: true, // use 12-hour clock (true) or 24-hour clock (false)
-  });
+  };
+
+  const formattedDateTime: string = new Date(dateString).toLocaleString(
+    "en-US",
+    dateTimeOptions
+  );
+
+  const formattedDateDay: string = new Date(dateString).toLocaleString(
+    "en-US",
+    dateDayOptions
+  );
+
+  const formattedDate: string = new Date(dateString).toLocaleString(
+    "en-US",
+    dateOptions
+  );
+
+  const formattedTime: string = new Date(dateString).toLocaleString(
+    "en-US",
+    timeOptions
+  );
 
   return {
-    dateTime: dateTimeString,
-    dateOnly,
-    timeOnly,
+    dateTime: formattedDateTime,
+    dateDay: formattedDateDay,
+    dateOnly: formattedDate,
+    timeOnly: formattedTime,
   };
 };
 
-export function getTransactionStatus(date: Date) {
-  const today = new Date();
-  const twoDaysAgo = new Date(today);
-  twoDaysAgo.setDate(today.getDate() - 2);
+export function formatAmount(amount: number): string {
+  const formatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+  });
 
-  return date > twoDaysAgo ? "Processing" : "Success";
+  return formatter.format(amount);
 }
 
-export const removeSpecialCharacters = (str: string) => {
-  return str.replace(/[^\w\s]/gi, "");
+export const parseStringify = (value: unknown) => JSON.parse(JSON.stringify(value));
+
+export const removeSpecialCharacters = (value: string) => {
+  return value.replace(/[^\w\s]/gi, "");
 };
 
-export function encryptId(id: string) {
-  return btoa(id);
+interface UrlQueryParams {
+  params: string;
+  key: string;
+  value: string;
 }
 
-export function decryptId(id: string) {
-  return atob(id);
+export function formUrlQuery({ params, key, value }: UrlQueryParams) {
+  const currentUrl = qs.parse(params);
+
+  currentUrl[key] = value;
+
+  return qs.stringifyUrl(
+    {
+      url: window.location.pathname,
+      query: currentUrl,
+    },
+    { skipNull: true }
+  );
 }
 
-export const countTransactionCategories = (
+export function getAccountTypeColors(type: AccountTypes) {
+  switch (type) {
+    case "depository":
+      return {
+        bg: "bg-blue-25",
+        lightBg: "bg-blue-100",
+        title: "text-blue-900",
+        subText: "text-blue-700",
+      };
+
+    case "credit":
+      return {
+        bg: "bg-success-25",
+        lightBg: "bg-success-100",
+        title: "text-success-900",
+        subText: "text-success-700",
+      };
+
+    default:
+      return {
+        bg: "bg-green-25",
+        lightBg: "bg-green-100",
+        title: "text-green-900",
+        subText: "text-green-700",
+      };
+  }
+}
+
+export function countTransactionCategories(
   transactions: Transaction[]
-): CategoryCount[] => {
+): CategoryCount[] {
   const categoryCounts: { [category: string]: number } = {};
   let totalCount = 0;
 
-  // Count occurrences of each category
-  if (transactions) {
+  // Iterate over each transaction
+  transactions &&
     transactions.forEach((transaction) => {
+      // Extract the category from the transaction
       const category = transaction.category;
 
+      // If the category exists in the categoryCounts object, increment its count
       if (categoryCounts.hasOwnProperty(category)) {
         categoryCounts[category]++;
       } else {
+        // Otherwise, initialize the count to 1
         categoryCounts[category] = 1;
       }
 
+      // Increment total count
       totalCount++;
     });
-  }
 
   // Convert the categoryCounts object to an array of objects
   const aggregatedCategories: CategoryCount[] = Object.keys(categoryCounts).map(
@@ -118,20 +176,49 @@ export const countTransactionCategories = (
     })
   );
 
-  // Sort categories by count in descending order
+  // Sort the aggregatedCategories array by count in descending order
   aggregatedCategories.sort((a, b) => b.count - a.count);
 
   return aggregatedCategories;
+}
+
+export function extractCustomerIdFromUrl(url: string) {
+  // Split the URL string by '/'
+  const parts = url.split("/");
+
+  // Extract the last part, which represents the customer ID
+  const customerId = parts[parts.length - 1];
+
+  return customerId;
+}
+
+export function encryptId(id: string) {
+  return btoa(id);
+}
+
+export function decryptId(id: string) {
+  return atob(id);
+}
+
+export const getTransactionStatus = (date: Date) => {
+  const today = new Date();
+  const twoDaysAgo = new Date(today);
+  twoDaysAgo.setDate(today.getDate() - 2);
+
+  return date > twoDaysAgo ? "Processing" : "Success";
 };
 
-// Types for the utility functions
-interface Transaction {
-  id: string;
-  category: string;
-}
-
-interface CategoryCount {
-  name: string;
-  count: number;
-  totalCount: number;
-}
+export const authFormSchema = (type: string) => z.object({
+  // sign up
+  firstName: type === 'sign-in' ? z.string().optional() : z.string().min(3),
+  lastName: type === 'sign-in' ? z.string().optional() : z.string().min(3),
+  address1: type === 'sign-in' ? z.string().optional() : z.string().max(50),
+  city: type === 'sign-in' ? z.string().optional() : z.string().max(50),
+  state: type === 'sign-in' ? z.string().optional() : z.string().min(2).max(2),
+  postalCode: type === 'sign-in' ? z.string().optional() : z.string().min(3).max(6),
+  dateOfBirth: type === 'sign-in' ? z.string().optional() : z.string().min(3),
+  ssn: type === 'sign-in' ? z.string().optional() : z.string().min(3),
+  // both
+  email: z.string().email(),
+  password: z.string().min(8),
+});
